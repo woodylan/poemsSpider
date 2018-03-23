@@ -1,4 +1,7 @@
 import scrapy
+import re
+from bs4 import BeautifulSoup
+
 from poemsSpider.items import PoemsSpiderItem
 
 
@@ -20,8 +23,10 @@ class PoemsSpider(scrapy.Spider):
     def parse_content(self, response):
         item = PoemsSpiderItem()
 
-        item['title'] = response.css(
-            'div.sons h1').xpath('text()').extract()[0]
+        title = response.css('div.sons h1').xpath('text()').extract()[0]
+        print(title)
+
+        item['title'] = response.css('div.sons h1').xpath('text()').extract()[0]
 
         try:
             author = response.css('div.cont p.source a').xpath('text()').extract()[1]
@@ -29,7 +34,20 @@ class PoemsSpider(scrapy.Spider):
             author = ''
 
         content = response.xpath('//div[@class="contson"]')[0].extract()
+
+        "过滤掉html标签"
+        content = BeautifulSoup(content, 'xml').get_text()
+        "过滤掉空格"
+        content = content.strip().replace("\n", "").replace(' ', '')
+        "去掉空格里的内容"
+        content = re.sub('\([^)]*\)', '', content)
+        content = re.sub('\（[^)]*\）', '', content)
+
+        # 换行
+        content = re.sub("。", "。\n", content)
+        content = content.rstrip("\n")
+
         item['author'] = author
-        item['content'] = content.strip()
+        item['content'] = content
 
         yield item

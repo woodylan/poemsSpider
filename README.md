@@ -10,6 +10,11 @@
 - python 3
 - git
 
+## 依赖
+
+```shell
+pip3 install beautifulsoup4
+```
 
 
 ## 使用
